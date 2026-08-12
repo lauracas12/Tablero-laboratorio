@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tablero Operativo de Laboratorio</title>
+<style>
+:root{
+  --bg:#f3f5f7;--surface:#fff;--surface2:#f8fafb;--text:#17212b;--muted:#697683;
+  --line:#dfe5ea;--accent:#1b6f64;--accent2:#dff2ee;--warn:#a96308;--warnbg:#fff3dc;
+  --danger:#a53c3c;--dangerbg:#fde8e8;--blue:#315c9e;--bluebg:#e8f0fb;
+  --violet:#6a4c93;--violetbg:#eee7f8;--shadow:0 8px 30px rgba(29,43,58,.08)
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit} button{cursor:pointer}
+.topbar{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 20px;display:flex;gap:14px;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#1b6f64,#2e8d7f);display:grid;place-items:center;color:#fff;font-weight:800}
+.brand h1{font-size:18px;margin:0}.brand p{font-size:12px;color:var(--muted);margin:2px 0 0}
+.actions-top{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 12px;border-radius:10px;font-weight:700;font-size:13px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn.soft{background:var(--accent2);border-color:transparent;color:#0d564d}.btn.danger{background:var(--dangerbg);border-color:transparent;color:var(--danger)}
+.container{max-width:1540px;margin:0 auto;padding:18px}
+.hero{display:grid;grid-template-columns:1.55fr 1fr;gap:14px;margin-bottom:14px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.hero-main{padding:20px}.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--accent);font-weight:800}
+.hero h2{margin:5px 0 7px;font-size:27px;line-height:1.1}.hero p{margin:0;color:var(--muted);font-size:14px;line-height:1.5}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px}.kpi{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:14px}.kpi .value{font-size:24px;font-weight:800}.kpi .label{color:var(--muted);font-size:12px;margin-top:2px}
+.nav{display:flex;gap:6px;padding:6px;background:#e9edf0;border-radius:12px;margin:14px 0;overflow:auto}.nav button{border:0;background:transparent;padding:10px 14px;border-radius:9px;font-weight:750;color:#52606c;white-space:nowrap}.nav button.active{background:#fff;color:var(--accent);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.view{display:none}.view.active{display:block}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar .spacer{flex:1}
+.week-wrap{overflow:auto}.week-grid{display:grid;gap:8px;min-width:1120px}.cell{min-height:120px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}.header-cell{min-height:auto;background:#edf2f4;font-weight:800;color:#34414d}
+.person-cell{display:flex;flex-direction:column;justify-content:center;background:#f8fafb}.person-cell strong{font-size:14px}.person-cell span{font-size:12px;color:var(--muted)}
+.dropzone{transition:.15s}.dropzone.dragover{outline:2px dashed var(--accent);outline-offset:-4px;background:#f0faf7}
+.shift{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:7px}
+.task{border-radius:9px;padding:8px;margin:6px 0;background:var(--bluebg);border-left:4px solid var(--blue);font-size:12px;line-height:1.25;cursor:grab}.task:active{cursor:grabbing}.task.extraction{background:var(--violetbg);border-color:var(--violet)}.task.daily{background:var(--accent2);border-color:var(--accent)}.task.project{background:var(--warnbg);border-color:var(--warn)}.task.recurring{background:#eef1f3;border-color:#75828d}.task.done{opacity:.42;text-decoration:line-through}
+.task strong{display:block;font-size:12px;margin-bottom:2px}.task small{color:#56626d}.task-actions{display:flex;gap:4px;margin-top:5px}.task-actions button{font-size:10px;border:0;background:rgba(255,255,255,.8);padding:4px 6px;border-radius:6px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted)}.dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:4px}
+.section-title{display:flex;align-items:end;justify-content:space-between;gap:10px;margin:18px 0 10px}.section-title h3{margin:0;font-size:17px}.section-title p{margin:2px 0 0;color:var(--muted);font-size:12px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px}.card h4{margin:0 0 7px;font-size:14px}.card p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+.badge{display:inline-flex;align-items:center;padding:4px 7px;border-radius:999px;font-size:10px;font-weight:800;background:#eef1f3;color:#53616c}.badge.green{background:var(--accent2);color:#0d564d}.badge.warn{background:var(--warnbg);color:#8b5308}.badge.violet{background:var(--violetbg);color:#563b78}
+.table-wrap{overflow:auto;background:#fff;border:1px solid var(--line);border-radius:14px}table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;vertical-align:middle}th{background:#f6f8f9;color:#52606c;font-size:11px;text-transform:uppercase;letter-spacing:.035em}
+.progress{height:8px;background:#e8edf0;border-radius:999px;overflow:hidden}.progress>span{display:block;height:100%;background:var(--accent);border-radius:inherit}
+.load-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.load-person{padding:16px}.load-person h3{margin:0 0 10px}.load-line{display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px}
+.notice{padding:12px 14px;border-radius:11px;background:var(--bluebg);color:#294d82;font-size:12px;line-height:1.45}.notice.warn{background:var(--warnbg);color:#7c4a08}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,30,.48);z-index:60;display:none;align-items:center;justify-content:center;padding:18px}.modal-backdrop.open{display:flex}.modal{width:min(760px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:18px;box-shadow:0 24px 70px rgba(0,0,0,.22)}.modal h3{margin:0 0 14px}.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.form-grid .full{grid-column:1/-1}.input,select,textarea{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 10px;border-radius:9px;outline:none;width:100%}.input:focus,select:focus,textarea:focus{border-color:#7ab8ad;box-shadow:0 0 0 3px rgba(27,111,100,.1)}
+.person-list{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.person-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px}.person-card h4{margin:0 0 4px}.person-card .meta{color:var(--muted)}
+.catalog-card{display:flex;flex-direction:column;gap:8px}.catalog-card .row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.catalog-card .buttons{display:flex;gap:6px;flex-wrap:wrap}
+.footer-note{font-size:11px;color:var(--muted);padding:12px 2px 2px}
+@media(max-width:980px){.hero{grid-template-columns:1fr}.cards,.person-list,.load-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.container{padding:10px}.cards,.person-list,.load-grid,.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:auto}}
+</style>
+
+<meta name="theme-color" content="#1b6f64">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tablero Lab">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">LAB</div>
+    <div><h1>Tablero Operativo de Laboratorio</h1><p>Calendario editable · personas dinámicas · balance de carga</p></div>
+  </div>
+  <div class="actions-top">
+    <button class="btn" onclick="exportJSON()">Respaldo JSON</button>
+    <button class="btn" onclick="document.getElementById('importFile').click()">Importar</button>
+    <input id="importFile" type="file" accept=".json" hidden onchange="importJSON(event)">
+    <button class="btn soft" onclick="openPersonModal()">+ Persona</button>
+    <button class="btn primary" onclick="openActivityModal()">+ Actividad</button>
+  </div>
+</div>
+
+<main class="container">
+  <section class="hero">
+    <div class="panel hero-main">
+      <div class="eyebrow">Operación semanal</div>
+      <h2>Distribuye trabajo directamente en el calendario.</h2>
+      <p>Arrastra una tarjeta entre días/personas para mover su carga. También puedes cambiar responsable, día y duración desde “Mover”. Las actividades nuevas aparecen de inmediato en <b>Actividades habilitables</b> y, por defecto, también se programan en el calendario.</p>
+    </div>
+    <div class="panel kpis">
+      <div class="kpi"><div class="value" id="kPeople">2</div><div class="label">Personas activas</div></div>
+      <div class="kpi"><div class="value" id="kOpen">0</div><div class="label">Actividades abiertas</div></div>
+      <div class="kpi"><div class="value" id="kHours">0 h</div><div class="label">Horas planificadas</div></div>
+      <div class="kpi"><div class="value" id="kBalance">—</div><div class="label">Diferencia de carga</div></div>
+    </div>
+  </section>
+
+  <div class="nav">
+    <button class="active" data-view="calendar">Calendario</button>
+    <button data-view="catalog">Actividades habilitables</button>
+    <button data-view="people">Personas</button>
+    <button data-view="load">Carga y balance</button>
+    <button data-view="rules">Reglas operativas</button>
+  </div>
+
+  <section id="calendar" class="view active">
+    <div class="toolbar">
+      <button class="btn" onclick="changeWeek(-1)">← Semana anterior</button>
+      <button class="btn" onclick="goToday()">Hoy</button>
+      <button class="btn" onclick="changeWeek(1)">Semana siguiente →</button>
+      <strong id="weekLabel"></strong>
+      <div class="spacer"></div>
+      <button class="btn soft" onclick="openActivityModal()">+ Agregar actividad</button>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:#1b6f64"></i>Logística diaria</span>
+      <span><i class="dot" style="background:#6a4c93"></i>Extracción ADN</span>
+      <span><i class="dot" style="background:#a96308"></i>Bloque proyecto en curso</span>
+      <span><i class="dot" style="background:#75828d"></i>Recurrente</span>
+    </div>
+    <div class="week-wrap" style="margin-top:10px"><div id="weekGrid" class="week-grid"></div></div>
+  </section>
+
+  <section id="catalog" class="view">
+    <div class="section-title">
+      <div><h3>Actividades habilitables</h3><p>Catálogo maestro. Toda actividad nueva queda guardada aquí y puede agregarse al calendario cuantas veces sea necesario.</p></div>
+      <button class="btn primary" onclick="openActivityModal()">+ Crear actividad</button>
+    </div>
+    <div id="catalogCards" class="cards"></div>
+  </section>
+
+  <section id="people" class="view">
+    <div class="section-title">
+      <div><h3>Personas del equipo</h3><p>Edita nombres, capacidad semanal y turnos. Los cambios se reflejan directamente en el calendario.</p></div>
+      <button class="btn primary" onclick="openPersonModal()">+ Agregar persona</button>
+    </div>
+    <div id="personCards" class="person-list"></div>
+  </section>
+
+  <section id="load" class="view">
+    <div class="section-title"><div><h3>Carga y balance</h3><p>La carga se recalcula al mover tarjetas o cambiar horas.</p></div></div>
+    <div id="loadGrid" class="load-grid"></div>
+    <div id="balanceAdvice" style="margin-top:12px"></div>
+  </section>
+
+  <section id="rules" class="view">
+    <div class="cards">
+      <div class="card"><span class="badge green">Diario</span><h4 style="margin-top:8px">Muestras y envíos</h4><p>La persona del turno de mañana prioriza recepción/recolección, cadena de custodia, ODOO y montaje de envíos.</p></div>
+      <div class="card"><span class="badge violet">Miércoles</span><h4 style="margin-top:8px">Extracción de ADN</h4><p>Las dos primeras personas coinciden 4 horas. El liderazgo rota semanalmente. Si agregas más personas, no se asignan automáticamente a extracción.</p></div>
+      <div class="card"><span class="badge">3 semanas</span><h4 style="margin-top:8px">Inventario</h4><p>Stock, vencimientos, mínimos y pedido a proveedores.</p></div>
+      <div class="card"><span class="badge warn">Mensual</span><h4 style="margin-top:8px">Bioseguridad</h4><p>Esterilización, entrega de residuos y descarte documentado de muestras antiguas.</p></div>
+      <div class="card"><span class="badge green">Semanal</span><h4 style="margin-top:8px">Medios de cultivo</h4><p>Preparar según conteos y ensayos previstos.</p></div>
+      <div class="card"><span class="badge warn">Variable</span><h4 style="margin-top:8px">Bloque proyecto en curso</h4><p>Usa este bloque para siembras, conteos, IC50, voluntarios, encuestas, análisis o informes sin llenar el tablero con categorías rígidas.</p></div>
+    </div>
+  </section>
+
+  <div class="footer-note">Los cambios se guardan automáticamente en este navegador. Exporta un respaldo JSON para mover la configuración a otro computador.</div>
+</main>
+
+<div id="activityModal" class="modal-backdrop">
+  <div class="modal">
+    <h3 id="activityModalTitle">Nueva actividad</h3>
+    <div class="form-grid">
+      <label>Nombre de actividad<input id="aTitle" class="input" placeholder="Ej. Bloque proyecto en curso"></label>
+      <label>Tipo<select id="aType"><option value="project">Bloque proyecto en curso</option><option value="daily">Diaria / logística</option><option value="recurring">Recurrente</option><option value="extraction">Extracción ADN</option></select></label>
+      <label>Responsable<select id="aOwner"></select></label>
+      <label>Horas<input id="aHours" class="input" type="number" min=".25" step=".25" value="2"></label>
+      <label>Día<select id="aDay"><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option></select></label>
+      <label>Frecuencia<select id="aFrequency"><option>Única</option><option>Diaria</option><option>Semanal</option><option>Cada 3 semanas</option><option>Mensual</option></select></label>
+      <label>Estado<select id="aStatus"><option value="pending">Pendiente</option><option value="progress">En curso</option><option value="done">Terminada</option></select></label>
+      <label>Agregar directamente al calendario<select id="aScheduleNow"><option value="yes">Sí</option><option value="no">No, solo guardar como habilitable</option></select></label>
+      <label class="full">Notas<textarea id="aNotes" rows="3" placeholder="Proyecto, lote, muestra, fecha objetivo..."></textarea></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeActivityModal()">Cancelar</button>
+      <button class="btn primary" onclick="saveActivity()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div id="moveModal" class="modal-backdrop">
+  <div class="modal" style="max-width:560px">
+    <h3>Mover / redistribuir horas</h3>
+    <div id="moveTitle" class="notice" style="margin-bottom:12px"></div>
+    <div class="form-grid">
+      <label>Persona<select id="mOwner"></select></label>
+      <label>Día<select id="mDay"><option>Lunes</option><option>Martes</option><option>Miércoles</option><option>Jueves</option><option>Viernes</option></select></label>
+      <label>Horas<input id="mHours" class="input" type="number" min=".25" step=".25"></label>
+      <label>Estado<select id="mStatus"><option value="pending">Pendiente</option><option value="progress">En curso</option><option value="done">Terminada</option></select></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMoveModal()">Cancelar</button>
+      <button class="btn primary" onclick="saveMove()">Aplicar cambio</button>
+    </div>
+  </div>
+</div>
+
+<div id="personModal" class="modal-backdrop">
+  <div class="modal">
+    <h3 id="personModalTitle">Agregar persona</h3>
+    <div class="form-grid">
+      <label>Nombre<input id="pName" class="input" placeholder="Nombre de la persona"></label>
+      <label>Capacidad semanal (h)<input id="pCapacity" class="input" type="number" min="1" step=".5" value="20"></label>
+      <label>Lunes<input id="pLunes" class="input" value="08:00–12:00"></label>
+      <label>Martes<input id="pMartes" class="input" value="08:00–12:00"></label>
+      <label>Miércoles<input id="pMiércoles" class="input" value="08:00–12:00"></label>
+      <label>Jueves<input id="pJueves" class="input" value="08:00–12:00"></label>
+      <label>Viernes<input id="pViernes" class="input" value="08:00–12:00"></label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closePersonModal()">Cancelar</button>
+      <button class="btn primary" onclick="savePerson()">Guardar persona</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS=["Lunes","Martes","Miércoles","Jueves","Viernes"];
+const DEFAULT_PEOPLE=[
+ {id:"P1",name:"Persona 1",capacity:20,shifts:{Lunes:"08:00–12:00",Martes:"13:00–17:00",Miércoles:"08:00–12:00",Jueves:"08:00–12:00",Viernes:"13:00–17:00"}},
+ {id:"P2",name:"Persona 2",capacity:20,shifts:{Lunes:"13:00–17:00",Martes:"08:00–12:00",Miércoles:"08:00–12:00",Jueves:"13:00–17:00",Viernes:"08:00–12:00"}}
+];
+const DEFAULT_CATALOG=[
+ {id:"c_daily1",title:"Recepción/recolección de muestras + cadena de custodia",type:"daily",defaultHours:.75,frequency:"Diaria",notes:"Integridad, rotulado, trazabilidad y registro."},
+ {id:"c_daily2",title:"Montaje de envíos + documentación",type:"daily",defaultHours:.75,frequency:"Diaria",notes:"Empaque, documentos y entrega a transportadora."},
+ {id:"c_daily3",title:"Organización y cierre del laboratorio",type:"daily",defaultHours:.5,frequency:"Diaria",notes:"Orden, limpieza, equipos e insumos."},
+ {id:"c_ex",title:"Extracción de ADN",type:"extraction",defaultHours:4,frequency:"Semanal",notes:"Ambas personas base presentes; liderazgo alternado."},
+ {id:"c_media",title:"Preparación de medios de cultivo",type:"recurring",defaultHours:2,frequency:"Semanal",notes:"Según pipeline de conteos y proyectos."},
+ {id:"c_inv",title:"Actualización de inventario",type:"recurring",defaultHours:2,frequency:"Cada 3 semanas",notes:"Stock, vencimientos y mínimos."},
+ {id:"c_buy",title:"Pedido de materiales a proveedores",type:"recurring",defaultHours:1,frequency:"Cada 3 semanas",notes:"Generado a partir de inventario o necesidad del proyecto."},
+ {id:"c_ster",title:"Esterilización",type:"recurring",defaultHours:2,frequency:"Mensual",notes:"Registrar ciclo si aplica."},
+ {id:"c_waste",title:"Entrega de residuos",type:"recurring",defaultHours:1.5,frequency:"Mensual",notes:"Rotulado y ruta institucional."},
+ {id:"c_discard",title:"Descarte de muestras antiguas",type:"recurring",defaultHours:1.5,frequency:"Mensual",notes:"Descarte documentado."},
+ {id:"c_odoo",title:"Crear / actualizar usuarios en ODOO",type:"recurring",defaultHours:.5,frequency:"Semanal",notes:"Cuando aplique."},
+ {id:"c_project",title:"Bloque proyecto en curso",type:"project",defaultHours:2,frequency:"Única",notes:"Usar para siembras, conteos, IC50, voluntarios, encuestas, análisis o informes."}
+];
+const DEFAULT_ITEMS=[
+ {id:"i1",catalogId:"c_daily1",title:"Recepción/recolección de muestras + cadena de custodia",type:"daily",owner:"AUTO_MORNING",hours:.75,day:"Lunes",frequency:"Diaria",status:"pending",notes:"Integridad, rotulado, trazabilidad y registro."},
+ {id:"i2",catalogId:"c_daily2",title:"Montaje de envíos + documentación",type:"daily",owner:"AUTO_MORNING",hours:.75,day:"Lunes",frequency:"Diaria",status:"pending",notes:"Empaque, documentos y entrega a transportadora."},
+ {id:"i3",catalogId:"c_daily3",title:"Organización y cierre del laboratorio",type:"daily",owner:"AUTO_MORNING",hours:.5,day:"Lunes",frequency:"Diaria",status:"pending",notes:"Orden, limpieza, equipos e insumos."},
+ {id:"i4",catalogId:"c_ex",title:"Extracción de ADN",type:"extraction",owner:"EXTRACTION_PAIR",hours:4,day:"Miércoles",frequency:"Semanal",status:"pending",notes:"Ambas personas base presentes; liderazgo alternado."},
+ {id:"i5",catalogId:"c_media",title:"Preparación de medios de cultivo",type:"recurring",owner:"P1",hours:2,day:"Lunes",frequency:"Semanal",status:"pending",notes:"Según pipeline."},
+ {id:"i6",catalogId:"c_inv",title:"Actualización de inventario",type:"recurring",owner:"P1",hours:2,day:"Jueves",frequency:"Cada 3 semanas",status:"pending",notes:"Stock, vencimientos y mínimos."},
+ {id:"i7",catalogId:"c_buy",title:"Pedido de materiales a proveedores",type:"recurring",owner:"P2",hours:1,day:"Jueves",frequency:"Cada 3 semanas",status:"pending",notes:"Según faltantes."},
+ {id:"i8",catalogId:"c_ster",title:"Esterilización",type:"recurring",owner:"P1",hours:2,day:"Viernes",frequency:"Mensual",status:"pending",notes:"Registrar ciclo si aplica."},
+ {id:"i9",catalogId:"c_waste",title:"Entrega de residuos",type:"recurring",owner:"P2",hours:1.5,day:"Viernes",frequency:"Mensual",status:"pending",notes:"Ruta institucional."},
+ {id:"i10",catalogId:"c_discard",title:"Descarte de muestras antiguas",type:"recurring",owner:"P2",hours:1.5,day:"Viernes",frequency:"Mensual",status:"pending",notes:"Descarte documentado."},
+ {id:"i11",catalogId:"c_odoo",title:"Crear / actualizar usuarios en ODOO",type:"recurring",owner:"P2",hours:.5,day:"Martes",frequency:"Semanal",status:"pending",notes:"Cuando aplique."},
+ {id:"i12",catalogId:"c_project",title:"Bloque proyecto en curso",type:"project",owner:"P1",hours:2,day:"Martes",frequency:"Única",status:"pending",notes:"Asignar al proyecto que esté activo."},
+ {id:"i13",catalogId:"c_project",title:"Bloque proyecto en curso",type:"project",owner:"P2",hours:2,day:"Jueves",frequency:"Única",status:"pending",notes:"Asignar al proyecto que esté activo."}
+];
+
+let state={people:[],catalog:[],items:[],weekOffset:0};
+let editActivityId=null, moveItemId=null, editPersonId=null;
+
+function init(){
+  const saved=localStorage.getItem("labBoardPCv3");
+  if(saved){
+    try{state=JSON.parse(saved)}catch(e){}
+  }
+  if(!state.people?.length) state.people=structuredClone(DEFAULT_PEOPLE);
+  if(!state.catalog?.length) state.catalog=structuredClone(DEFAULT_CATALOG);
+  if(!state.items?.length) state.items=structuredClone(DEFAULT_ITEMS);
+  renderAll();
+}
+function persist(){localStorage.setItem("labBoardPCv3",JSON.stringify(state));renderAll()}
+
+function personName(id){
+  if(id==="AUTO_MORNING") return "Turno de mañana";
+  if(id==="EXTRACTION_PAIR") return "Pareja de extracción";
+  const p=state.people.find(x=>x.id===id); return p?p.name:"Sin asignar";
+}
+function mondayOf(date){const d=new Date(date),day=d.getDay(),diff=(day===0?-6:1-day);d.setDate(d.getDate()+diff);d.setHours(0,0,0,0);return d}
+function currentMonday(){const m=mondayOf(new Date());m.setDate(m.getDate()+state.weekOffset*7);return m}
+function dateForDay(day){const d=currentMonday();d.setDate(d.getDate()+DAYS.indexOf(day));return d}
+function fmtDate(d){return d.toLocaleDateString("es-CO",{day:"2-digit",month:"short"})}
+function weekNumber(d){const onejan=new Date(d.getFullYear(),0,1);return Math.ceil((((d-onejan)/86400000)+onejan.getDay()+1)/7)}
+function extractionLead(){const base=state.people.slice(0,2);if(base.length<2)return base[0]?.id;return weekNumber(currentMonday())%2===0?base[0].id:base[1].id}
+function morningPerson(day){
+  const found=state.people.find(p=>(p.shifts?.[day]||"").startsWith("08"));
+  return found?.id || state.people[0]?.id;
+}
+function itemMatchesCell(item,pid,day){
+  if(item.type==="daily"){
+    if(item.owner==="AUTO_MORNING") return morningPerson(day)===pid;
+    return item.owner===pid;
+  }
+  if(item.type==="extraction" && item.owner==="EXTRACTION_PAIR"){
+    return day==="Miércoles" && state.people.slice(0,2).some(p=>p.id===pid);
+  }
+  return item.day===day && item.owner===pid;
+}
+function ownerForLoad(item,day=item.day){
+  if(item.owner==="AUTO_MORNING") return morningPerson(day);
+  return item.owner;
+}
+function plannedHours(pid){
+  let h=0;
+  state.items.filter(i=>i.status!=="done").forEach(item=>{
+    if(item.type==="daily"){
+      DAYS.forEach(day=>{if(ownerForLoad(item,day)===pid) h+=Number(item.hours)});
+    } else if(item.type==="extraction" && item.owner==="EXTRACTION_PAIR"){
+      if(state.people.slice(0,2).some(p=>p.id===pid)) h+=Number(item.hours);
+    } else if(item.owner===pid) h+=Number(item.hours);
+  });
+  return h;
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function statusText(s){return s==="pending"?"Pendiente":s==="progress"?"En curso":"Terminada"}
+
+function renderOwnerOptions(selectId,includeSpecial=true){
+  const s=document.getElementById(selectId); if(!s)return;
+  const current=s.value;s.innerHTML="";
+  if(includeSpecial){
+    s.insertAdjacentHTML("beforeend",`<option value="AUTO_MORNING">Turno de mañana</option><option value="EXTRACTION_PAIR">Pareja de extracción</option>`);
+  }
+  state.people.forEach(p=>s.insertAdjacentHTML("beforeend",`<option value="${p.id}">${esc(p.name)}</option>`));
+  if([...s.options].some(o=>o.value===current)) s.value=current;
+}
+
+function renderCalendar(){
+  const grid=document.getElementById("weekGrid");
+  grid.style.gridTemplateColumns=`150px repeat(5,minmax(190px,1fr))`;
+  grid.innerHTML=`<div class="cell header-cell">Persona / turno</div>`;
+  DAYS.forEach(d=>grid.insertAdjacentHTML("beforeend",`<div class="cell header-cell">${d}<br><span style="font-weight:500;color:#7a8790">${fmtDate(dateForDay(d))}</span></div>`));
+  state.people.forEach(p=>{
+    grid.insertAdjacentHTML("beforeend",`<div class="cell person-cell"><strong>${esc(p.name)}</strong><span>${p.capacity} h / semana</span></div>`);
+    DAYS.forEach(day=>{
+      const items=state.items.filter(i=>itemMatchesCell(i,p.id,day));
+      let html=`<div class="shift">${esc(p.shifts?.[day]||"Horario flexible")}</div>`;
+      items.forEach(item=>{
+        const support=item.type==="extraction" && extractionLead()!==p.id;
+        const title=support?"Apoyo extracción / controles":item.title;
+        html+=`<div class="task ${item.type} ${item.status==="done"?"done":""}" draggable="true" ondragstart="dragStart(event,'${item.id}')">
+          <strong>${esc(title)}</strong>
+          <small>${item.hours} h · ${item.frequency}${item.type==="extraction"?" · líder "+esc(personName(extractionLead())):""}</small>
+          <div class="task-actions">
+            <button onclick="toggleDone('${item.id}')">${item.status==="done"?"Reabrir":"✓ Hecha"}</button>
+            <button onclick="openMoveModal('${item.id}')">Mover</button>
+            <button onclick="editCalendarItem('${item.id}')">Editar</button>
+          </div>
+        </div>`;
+      });
+      grid.insertAdjacentHTML("beforeend",`<div class="cell dropzone" data-person="${p.id}" data-day="${day}" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropTask(event)">${html}</div>`);
+    });
+  });
+  const m=currentMonday(),f=new Date(m);f.setDate(m.getDate()+4);
+  document.getElementById("weekLabel").textContent=`${fmtDate(m)} – ${fmtDate(f)} ${f.getFullYear()}`;
+}
+function renderCatalog(){
+  const box=document.getElementById("catalogCards");box.innerHTML="";
+  state.catalog.forEach(c=>{
+    box.insertAdjacentHTML("beforeend",`<div class="card catalog-card">
+      <div class="row"><div><span class="badge ${c.type==="project"?"warn":c.type==="daily"?"green":c.type==="extraction"?"violet":""}">${c.type==="project"?"Proyecto":c.type==="daily"?"Diaria":c.type==="extraction"?"Extracción":"Recurrente"}</span>
+      <h4 style="margin-top:8px">${esc(c.title)}</h4></div><span class="badge">${c.defaultHours} h</span></div>
+      <p>${esc(c.notes||"")}</p>
+      <div class="buttons"><button class="btn primary" onclick="scheduleFromCatalog('${c.id}')">+ Agregar al calendario</button><button class="btn" onclick="editCatalog('${c.id}')">Editar</button><button class="btn danger" onclick="deleteCatalog('${c.id}')">Eliminar</button></div>
+    </div>`);
+  });
+}
+function renderPeople(){
+  const box=document.getElementById("personCards");box.innerHTML="";
+  state.people.forEach((p,idx)=>{
+    box.insertAdjacentHTML("beforeend",`<div class="person-card">
+      <div style="display:flex;justify-content:space-between;gap:8px"><div><h4>${esc(p.name)}</h4><div class="meta">${p.capacity} h/semana</div></div><span class="badge ${idx<2?"green":""}">${idx<2?"Equipo base":"Adicional"}</span></div>
+      <div style="margin-top:9px;font-size:11px;color:#697683">${DAYS.map(d=>`<b>${d.slice(0,3)}:</b> ${esc(p.shifts?.[d]||"Flexible")}`).join(" · ")}</div>
+      <div style="margin-top:10px;display:flex;gap:6px"><button class="btn" onclick="openPersonModal('${p.id}')">Editar</button>${state.people.length>2?`<button class="btn danger" onclick="deletePerson('${p.id}')">Eliminar</button>`:""}</div>
+    </div>`);
+  });
+}
+function renderLoad(){
+  const grid=document.getElementById("loadGrid");grid.innerHTML="";
+  const loads=state.people.map(p=>({p,h:plannedHours(p.id),pct:plannedHours(p.id)/p.capacity*100}));
+  loads.forEach(({p,h,pct})=>{
+    grid.insertAdjacentHTML("beforeend",`<div class="panel load-person"><h3>${esc(p.name)}</h3>
+      <div class="load-line"><span>Planificado</span><b>${h.toFixed(1)} h</b></div>
+      <div class="load-line"><span>Capacidad</span><b>${p.capacity} h</b></div>
+      <div class="progress"><span style="width:${Math.min(pct,100)}%"></span></div>
+      <div style="margin-top:8px"><span class="badge ${pct>100?"warn":pct>85?"green":""}">${pct>100?"Sobrecarga "+(h-p.capacity).toFixed(1)+" h":pct>85?"Carga alta":"Capacidad disponible"}</span></div>
+    </div>`);
+  });
+  const sorted=[...loads].sort((a,b)=>a.h-b.h);
+  if(sorted.length>=2){
+    const low=sorted[0],high=sorted[sorted.length-1],diff=high.h-low.h;
+    document.getElementById("balanceAdvice").innerHTML=diff>2?`<div class="notice warn"><b>Conviene redistribuir.</b> ${esc(high.p.name)} tiene ${diff.toFixed(1)} h más que ${esc(low.p.name)}. Arrastra uno de los bloques variables hacia ${esc(low.p.name)} o abre “Mover” y cambia también su duración.</div>`:`<div class="notice"><b>Carga razonablemente equilibrada.</b> La diferencia máxima es de ${diff.toFixed(1)} h.</div>`;
+    document.getElementById("kBalance").textContent=diff.toFixed(1)+" h";
+  } else document.getElementById("balanceAdvice").innerHTML="";
+}
+function updateKPIs(){
+  document.getElementById("kPeople").textContent=state.people.length;
+  document.getElementById("kOpen").textContent=state.items.filter(i=>i.status!=="done").length;
+  const total=state.people.reduce((s,p)=>s+plannedHours(p.id),0);
+  document.getElementById("kHours").textContent=total.toFixed(1)+" h";
+}
+function renderAll(){renderOwnerOptions("aOwner");renderOwnerOptions("mOwner",false);renderCalendar();renderCatalog();renderPeople();renderLoad();updateKPIs()}
+
+function changeWeek(n){state.weekOffset+=n;persist()} function goToday(){state.weekOffset=0;persist()}
+function toggleDone(id){const i=state.items.find(x=>x.id===id);i.status=i.status==="done"?"pending":"done";persist()}
+
+function dragStart(e,id){e.dataTransfer.setData("text/plain",id);e.dataTransfer.effectAllowed="move"}
+function dragOver(e){e.preventDefault();e.currentTarget.classList.add("dragover")}
+function dragLeave(e){e.currentTarget.classList.remove("dragover")}
+function dropTask(e){
+  e.preventDefault();e.currentTarget.classList.remove("dragover");
+  const id=e.dataTransfer.getData("text/plain"),item=state.items.find(x=>x.id===id);if(!item)return;
+  item.owner=e.currentTarget.dataset.person;item.day=e.currentTarget.dataset.day;
+  if(item.type==="daily") item.type="project";
+  if(item.type==="extraction" && item.owner!=="EXTRACTION_PAIR") item.type="project";
+  persist();
+}
+
+function openActivityModal(catalogId=null){
+  editActivityId=null;document.getElementById("activityModalTitle").textContent="Nueva actividad";
+  const c=catalogId?state.catalog.find(x=>x.id===catalogId):null;
+  document.getElementById("aTitle").value=c?.title||"Bloque proyecto en curso";
+  document.getElementById("aType").value=c?.type||"project";
+  document.getElementById("aHours").value=c?.defaultHours||2;
+  document.getElementById("aDay").value="Lunes";document.getElementById("aFrequency").value=c?.frequency||"Única";
+  document.getElementById("aStatus").value="pending";document.getElementById("aScheduleNow").value="yes";document.getElementById("aNotes").value=c?.notes||"";
+  renderOwnerOptions("aOwner");document.getElementById("aOwner").value=state.people[0]?.id||"";
+  document.getElementById("activityModal").classList.add("open");
+}
+function editCatalog(id){
+  const c=state.catalog.find(x=>x.id===id);if(!c)return;editActivityId={mode:"catalog",id};
+  document.getElementById("activityModalTitle").textContent="Editar actividad habilitable";
+  document.getElementById("aTitle").value=c.title;document.getElementById("aType").value=c.type;document.getElementById("aHours").value=c.defaultHours;document.getElementById("aDay").value="Lunes";document.getElementById("aFrequency").value=c.frequency;document.getElementById("aStatus").value="pending";document.getElementById("aScheduleNow").value="no";document.getElementById("aNotes").value=c.notes||"";
+  renderOwnerOptions("aOwner");document.getElementById("aOwner").value=state.people[0]?.id||"";
+  document.getElementById("activityModal").classList.add("open");
+}
+function editCalendarItem(id){
+  const item=state.items.find(x=>x.id===id);if(!item)return;editActivityId={mode:"item",id};
+  document.getElementById("activityModalTitle").textContent="Editar actividad del calendario";
+  document.getElementById("aTitle").value=item.title;document.getElementById("aType").value=item.type;document.getElementById("aHours").value=item.hours;document.getElementById("aDay").value=item.day;document.getElementById("aFrequency").value=item.frequency;document.getElementById("aStatus").value=item.status;document.getElementById("aScheduleNow").value="yes";document.getElementById("aNotes").value=item.notes||"";
+  renderOwnerOptions("aOwner");document.getElementById("aOwner").value=item.owner;
+  document.getElementById("activityModal").classList.add("open");
+}
+function closeActivityModal(){document.getElementById("activityModal").classList.remove("open")}
+function saveActivity(){
+  const title=document.getElementById("aTitle").value.trim();if(!title){alert("Escribe el nombre de la actividad.");return}
+  const type=document.getElementById("aType").value,hours=Number(document.getElementById("aHours").value)||1,frequency=document.getElementById("aFrequency").value,notes=document.getElementById("aNotes").value.trim();
+  if(editActivityId?.mode==="catalog"){
+    const c=state.catalog.find(x=>x.id===editActivityId.id);Object.assign(c,{title,type,defaultHours:hours,frequency,notes});
+  } else if(editActivityId?.mode==="item"){
+    const i=state.items.find(x=>x.id===editActivityId.id);Object.assign(i,{title,type,hours,day:document.getElementById("aDay").value,owner:document.getElementById("aOwner").value,frequency,status:document.getElementById("aStatus").value,notes});
+  } else {
+    const catalogId="c"+Date.now();
+    state.catalog.push({id:catalogId,title,type,defaultHours:hours,frequency,notes});
+    if(document.getElementById("aScheduleNow").value==="yes"){
+      state.items.push({id:"i"+Date.now(),catalogId,title,type,owner:document.getElementById("aOwner").value,hours,day:document.getElementById("aDay").value,frequency,status:document.getElementById("aStatus").value,notes});
+    }
+  }
+  closeActivityModal();persist();
+}
+function scheduleFromCatalog(id){openActivityModal(id)}
+function deleteCatalog(id){
+  if(!confirm("¿Eliminar esta actividad habilitable? Las instancias ya programadas en el calendario no se borrarán."))return;
+  state.catalog=state.catalog.filter(x=>x.id!==id);persist()
+}
+
+function openMoveModal(id){
+  moveItemId=id;const item=state.items.find(x=>x.id===id);
+  document.getElementById("moveTitle").innerHTML=`<b>${esc(item.title)}</b><br>Actual: ${esc(personName(item.owner))} · ${item.day} · ${item.hours} h`;
+  renderOwnerOptions("mOwner",false);
+  document.getElementById("mOwner").value=state.people.some(p=>p.id===item.owner)?item.owner:state.people[0]?.id;
+  document.getElementById("mDay").value=item.day;document.getElementById("mHours").value=item.hours;document.getElementById("mStatus").value=item.status;
+  document.getElementById("moveModal").classList.add("open");
+}
+function closeMoveModal(){document.getElementById("moveModal").classList.remove("open")}
+function saveMove(){
+  const item=state.items.find(x=>x.id===moveItemId);
+  item.owner=document.getElementById("mOwner").value;item.day=document.getElementById("mDay").value;item.hours=Number(document.getElementById("mHours").value)||item.hours;item.status=document.getElementById("mStatus").value;
+  if(item.type==="daily") item.type="project";
+  if(item.type==="extraction") item.type="project";
+  closeMoveModal();persist();
+}
+
+function openPersonModal(id=null){
+  editPersonId=id;const p=id?state.people.find(x=>x.id===id):null;
+  document.getElementById("personModalTitle").textContent=p?"Editar persona":"Agregar persona";
+  document.getElementById("pName").value=p?.name||"";
+  document.getElementById("pCapacity").value=p?.capacity||20;
+  DAYS.forEach(d=>document.getElementById("p"+d).value=p?.shifts?.[d]||"08:00–12:00");
+  document.getElementById("personModal").classList.add("open");
+}
+function closePersonModal(){document.getElementById("personModal").classList.remove("open")}
+function savePerson(){
+  const name=document.getElementById("pName").value.trim();if(!name){alert("Ingresa el nombre de la persona.");return}
+  const shifts={};DAYS.forEach(d=>shifts[d]=document.getElementById("p"+d).value.trim()||"Horario flexible");
+  if(editPersonId){
+    const p=state.people.find(x=>x.id===editPersonId);p.name=name;p.capacity=Number(document.getElementById("pCapacity").value)||20;p.shifts=shifts;
+  } else {
+    state.people.push({id:"P"+Date.now(),name,capacity:Number(document.getElementById("pCapacity").value)||20,shifts});
+  }
+  closePersonModal();persist();
+}
+function deletePerson(id){
+  if(state.people.length<=2){alert("Deben mantenerse al menos dos personas.");return}
+  const assigned=state.items.some(i=>i.owner===id);
+  if(assigned && !confirm("Esta persona tiene actividades asignadas. Si la eliminas, esas actividades quedarán sin asignación válida. ¿Continuar?"))return;
+  state.people=state.people.filter(p=>p.id!==id);persist();
+}
+
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"}),a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="tablero_operativo_laboratorio_PC.json";a.click();URL.revokeObjectURL(a.href)
+}
+function importJSON(ev){
+  const f=ev.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{state=JSON.parse(r.result);persist();alert("Respaldo importado correctamente.");}catch(e){alert("El archivo no es válido.");}};r.readAsText(f)
+}
+
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");document.getElementById(b.dataset.view).classList.add("active")
+}));
+["activityModal","moveModal","personModal"].forEach(id=>document.getElementById(id).addEventListener("click",e=>{if(e.target.id===id)e.target.classList.remove("open")}));
+init();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>

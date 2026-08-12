@@ -1,0 +1,22 @@
+TABLERO LABORATORIO — WEB APP PARA IPHONE
+==========================================
+
+ARCHIVOS:
+1. index.html
+2. manifest.webmanifest
+3. sw.js
+4. icon-192.png
+5. icon-512.png
+6. apple-touch-icon.png
+
+IMPORTANTE:
+Estos archivos deben estar publicados juntos en una dirección web HTTPS.
+Después, en el iPhone:
+Safari > abrir la dirección > Compartir > Añadir a pantalla de inicio
+y, cuando aparezca, activar "Abrir como app web".
+
+La app conserva el tablero, sus personas, actividades y balance.
+Los datos se guardan localmente en el navegador/dispositivo mediante localStorage.
+
+Para compartir el mismo tablero entre varios iPhone hará falta una base de datos
+o servicio en línea; esta versión guarda datos por dispositivo.
